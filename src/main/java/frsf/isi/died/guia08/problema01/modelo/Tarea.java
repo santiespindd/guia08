@@ -2,6 +2,8 @@ package frsf.isi.died.guia08.problema01.modelo;
 
 import java.time.LocalDateTime;
 
+import frsf.isi.died.guia08.problema01.excepciones.TareaException;
+
 public class Tarea {
 
 	private Integer id;
@@ -12,9 +14,23 @@ public class Tarea {
 	private LocalDateTime fechaFin;
 	private Boolean facturada;
 	
-	public void asignarEmpleado(Empleado e) {
+	
+	
+	
+
+	public void setEmpleadoAsignado(Empleado empleadoAsignado) {
+		this.empleadoAsignado = empleadoAsignado;
+	}
+
+	public void asignarEmpleado(Empleado emp) throws TareaException {
 		// si la tarea ya tiene un empleado asignado
 		// y tiene fecha de finalizado debe lanzar una excepcion
+		
+			if(this.empleadoAsignado !=null) throw new TareaException("Error: Ya existe un empleado asignado");
+			if(this.getFechaFin() !=null) throw new TareaException("Error: Tarea finalizada");
+			
+			this.setEmpleadoAsignado(emp);
+					
 	}
 
 	public Integer getId() {
