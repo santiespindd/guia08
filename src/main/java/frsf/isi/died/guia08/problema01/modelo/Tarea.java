@@ -18,6 +18,14 @@ public class Tarea {
 	
 	
 
+	public Tarea(Integer id, String descripcion, Integer duracionEstimada) {
+		
+		this.id = id;
+		this.descripcion = descripcion;
+		this.duracionEstimada = duracionEstimada;
+		
+	}
+
 	public void setEmpleadoAsignado(Empleado empleadoAsignado) {
 		this.empleadoAsignado = empleadoAsignado;
 	}
@@ -83,6 +91,12 @@ public class Tarea {
 
 	public Empleado getEmpleadoAsignado() {
 		return empleadoAsignado;
+	}
+
+	public String asCsv() {
+		
+		return this.id+ ";" +this.descripcion+ " ; "+ this.duracionEstimada+ " ; "+ this.empleadoAsignado.getCuil();
+		
 	}
 	
 	

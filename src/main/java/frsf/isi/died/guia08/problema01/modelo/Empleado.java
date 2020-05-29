@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -27,6 +28,44 @@ public class Empleado {
 
 	private Function<Tarea, Double> calculoPagoPorTarea;
 	private Predicate<Tarea> puedeAsignarTarea;
+	
+	
+
+	public Empleado(Integer cuil, String nombre, Tipo tipo, Double costoHora) {
+		
+		this.cuil = cuil;
+		this.nombre = nombre;
+		this.tipo = tipo;
+		this.costoHora = costoHora;
+		this.tareasAsignadas = new ArrayList<Tarea>();
+		this.puedeAsignarTarea = ((a) -> a.getEmpleadoAsignado() == null);
+		this.calculoPagoPorTarea = (t) -> {
+			 double costo=0;
+
+			int horasTareaRealizada = (t.getFechaFin().getDayOfMonth() - t.getFechaFin().getDayOfMonth()) * 4;
+
+			if (horasTareaRealizada < t.getDuracionEstimada()) {
+				if (this.tipo == Tipo.EFECTIVO) {
+					 costo = t.getEmpleadoAsignado().getCostoHora() * 1.3;
+				}
+				if (this.tipo == Tipo.CONTRATADO) {
+					 costo = t.getEmpleadoAsignado().getCostoHora() * 1.2;
+				}
+			} else {
+				if( this.tipo == Tipo.CONTRATADO && (horasTareaRealizada - t.getDuracionEstimada()) > 2 ) {
+					
+					costo= t.getEmpleadoAsignado().getCostoHora() * 0.75;
+				}
+				else {
+					costo = t.getEmpleadoAsignado().getCostoHora();
+				}
+			}
+
+			return  horasTareaRealizada * costo;
+			
+			
+		};
+	}
 
 	public Integer getCuil() {
 		return cuil;
@@ -94,11 +133,14 @@ public class Empleado {
 		// calcular el costo
 		// marcarlas como facturadas.
 		
-		for (Tarea tarea : tareasNoFacturadas) {
-			salario += this.calculoPagoPorTarea.apply(tarea);
-			tarea.setFacturada(true);
-		}
+		if(!tareasNoFacturadas.isEmpty()) {
+			for (Tarea tarea : tareasNoFacturadas) {
+				salario += this.calcularCostoTarea(tarea);
+				tarea.setFacturada(true);
+			}
 
+		}
+		
 		return salario;
 	}
 
@@ -112,25 +154,11 @@ public class Empleado {
 	 */
 	
 
-	public Double costoTarea(Tarea t) {
-
-		if (t.getFechaFin() == null)
-			return this.costoHora * t.getDuracionEstimada();
-
-		int horasTareaRealizada = (t.getFechaFin().getDayOfMonth() - t.getFechaFin().getDayOfMonth()) * 4;
-
-		if (horasTareaRealizada < t.getDuracionEstimada()) {
-			if (this.tipo == tipo.EFECTIVO) {
-				setCalculoPagoPorTarea(tarea -> tarea.getDuracionEstimada() * 1.2 * this.costoHora);
-			}
-			if (this.tipo == tipo.CONTRATADO) {
-				setCalculoPagoPorTarea(tarea -> tarea.getDuracionEstimada() * 1.3 * this.costoHora);
-			}
-		} else {
-			setCalculoPagoPorTarea(tarea -> tarea.getDuracionEstimada() * 0.75 * this.costoHora);
-		}
-
-		return this.calculoPagoPorTarea.apply(t);
+	public Double calcularCostoTarea(Tarea t) {
+		
+		if(t.getFechaFin() != null) return this.calculoPagoPorTarea.apply(t);
+									return  t.getDuracionEstimada() * this.costoHora;
+		
 	}
 	
 	private int horasPendientes() {
@@ -154,21 +182,27 @@ public class Empleado {
 		if (t.getEmpleadoAsignado() != null)
 			throw new AsignacionIncorrectaException("Asignacion incorrecta: Ya hay un empleado asignado");
 
+		
 		// Si es contratado, no puede tener más de 5 tareas asignadas pendientes de
 		// finalizar.
-		if (this.tipo == tipo.CONTRATADO) {
+		
+		if (this.tipo == Tipo.CONTRATADO) {
 			setPuedeAsignarTarea(tarea -> this.tareasPendientes() < 5);
 		}
+		
 		// Si es Efectivo, no puede tener asignadas, tareas pendientes de finalizar
 		// que sumen más de 15 horas de trabajo estimadas.
 
-		else if (this.tipo == tipo.EFECTIVO) {
+		
+		else if (this.tipo == Tipo.EFECTIVO) {
 			setPuedeAsignarTarea(tarea -> this.horasPendientes() < 15);
 		}
 		
 		if (puedeAsignarTarea.test(t)) {
 			this.tareasAsignadas.add(t);
 			t.asignarEmpleado(this);
+			
+			return true;
 		}
 
 		return false;
@@ -198,7 +232,7 @@ public class Empleado {
 		try {
 			this.finalizar(idTarea, fechaActual);
 		} catch (TareaException e) {
-			e.getMessage();
+			e.getMessage(); 
 		}
 	}
 
@@ -208,7 +242,7 @@ public class Empleado {
 		// si la tarea existe indica como fecha de finalizacion la fecha y hora actual
 		
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("“dd-MM-yyyy HH:mm”");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 		LocalDateTime fechaInicio = LocalDateTime.parse(fecha, formatter);
 
 		Optional<Tarea> tareaOptional = this.tareasAsignadas.stream()
@@ -228,7 +262,7 @@ public class Empleado {
 		// si la tarea existe indica como fecha de finalizacion la fecha y hora actual
 		
 		
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("“dd-MM-yyyy HH:mm”");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 		LocalDateTime fechaFin = LocalDateTime.parse(fecha, formatter);
 		
 		Optional<Tarea> tareaOptional = this.tareasAsignadas.stream()
