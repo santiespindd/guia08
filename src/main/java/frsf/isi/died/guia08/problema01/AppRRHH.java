@@ -111,7 +111,7 @@ public class AppRRHH {
 				while ((linea = in.readLine()) != null) {
 					String[] fila = linea.split(";");
 					
-					this.agregarEmpleadoContratado(Integer.valueOf(fila[0]),String.valueOf(fila[1]),Double.valueOf(fila[2]));
+					this.agregarEmpleadoEfectivo(Integer.valueOf(fila[0]),String.valueOf(fila[1]),Double.valueOf(fila[2]));
 						
 					}
 				}

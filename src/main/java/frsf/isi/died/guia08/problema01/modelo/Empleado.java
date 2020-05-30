@@ -135,7 +135,7 @@ public class Empleado {
 		
 		if(!tareasNoFacturadas.isEmpty()) {
 			for (Tarea tarea : tareasNoFacturadas) {
-				salario += this.calcularCostoTarea(tarea);
+				salario += this.costoTarea(tarea);
 				tarea.setFacturada(true);
 			}
 
@@ -154,7 +154,7 @@ public class Empleado {
 	 */
 	
 
-	public Double calcularCostoTarea(Tarea t) {
+	public Double costoTarea(Tarea t) {
 		
 		if(t.getFechaFin() != null) return this.calculoPagoPorTarea.apply(t);
 									return  t.getDuracionEstimada() * this.costoHora;
@@ -213,12 +213,16 @@ public class Empleado {
 		// si la tarea no existe lanza una excepción
 		// si la tarea existe indica como fecha de inicio la fecha y hora actual
 		
+		Optional<Tarea> tarea = this.tareasAsignadas.stream()
+													.filter(t -> t.getId().equals(idTarea))
+													.findFirst();
 		String fechaActual = LocalDateTime.now().toString();
 		
-		try {
-			this.comenzar(idTarea, fechaActual);
-		} catch (Exception e) {
-			e.getMessage();
+		if(tarea.isPresent()) {
+			tarea.get().setFechaInicio(LocalDateTime.now());
+			
+		}else {
+			throw new TareaException("Error: No se encuentra la tarea ");
 		}
 	}
 
@@ -227,12 +231,17 @@ public class Empleado {
 		// si la tarea no existe lanza una excepción
 		// si la tarea existe indica como fecha de finalizacion la fecha y hora actual
 		
-		String fechaActual = LocalDateTime.now().toString();
+		Optional<Tarea> tarea = this.tareasAsignadas.stream()
+													.filter(t -> t.getId().equals(idTarea))
+													.findFirst();
 		
-		try {
-			this.finalizar(idTarea, fechaActual);
-		} catch (TareaException e) {
-			e.getMessage(); 
+		String fechaActual = LocalDateTime.now().toString();
+
+		if (tarea.isPresent()) {
+			tarea.get().setFechaFin(LocalDateTime.now());
+
+		} else {
+			throw new TareaException("Error: No se encuentra la tarea ");
 		}
 	}
 

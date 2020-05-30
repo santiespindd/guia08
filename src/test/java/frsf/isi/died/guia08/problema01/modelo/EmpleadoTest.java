@@ -22,7 +22,7 @@ public class EmpleadoTest {
 		
 		
 		
-		Double esperado = 390.0;
+		
 		
 		Empleado emp1 = new Empleado(2000, "Santiago", Tipo.CONTRATADO, 100.0);
 		Empleado emp2 = new Empleado(1000, "Jorge", Tipo.EFECTIVO, 60.0);
@@ -31,22 +31,24 @@ public class EmpleadoTest {
 		Tarea t2 = new Tarea(2, "Reparacion freezer", 1);
 		
 	
-		
-		
 		emp1.asignarTarea(t1);
 		
 		emp1.comenzar(1);
-		emp1.finalizar(1);
 		
-		assertEquals(esperado, emp1.salario());
+
+		emp2.asignarTarea(t2);
+		emp2.comenzar(2);
+	
+		assertTrue(emp1.salario() > 0 && emp2.salario() > 0);
+		
 		
 		
 		
 	}
 
 	@Test
-	public void testCostoTarea() {
-		fail("Not yet implemented");
+	public void testCostoTarea() throws AsignacionIncorrectaException {
+	
 	}
 
 	@Test
